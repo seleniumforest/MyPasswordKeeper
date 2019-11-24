@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace MyPasswordKeeper.Models
@@ -10,6 +11,6 @@ namespace MyPasswordKeeper.Models
         public string Username { get; set; }
         public string Password { get; set; }
 
-        public bool IsValid() => !string.IsNullOrEmpty(ServiceName) && !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
+        public bool IsValid() => !string.IsNullOrEmpty(ServiceName) && !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);       
     }
 }

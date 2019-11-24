@@ -32,58 +32,70 @@ namespace MyPasswordKeeper
             InitializeComponent();
         }
 
-        private async void OpenButton_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new OpenFileDialog();
-            var show = dialog.ShowDialog(this);
-            if (show.HasValue && show.Value)
-            {
-                var path = dialog.InitialDirectory + dialog.FileName;
-                var storage = new Storage
-                {
-                    Password = enteredPassword,
-                    PathToArchive = path
-                };
-                if (await storage.IsValidStorage())
-                {
-                    mainGrid.ItemsSource = await storage.Load();
-                    StatusLabel.Content = "Loaded";
-                } 
-                else
-                {
-                    StatusLabel.Content = "Corrupted zip or incorrect password";
-                }
-            }
-        }
-
-        private async void SaveButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveCustomButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new SaveFileDialog();
             var show = dialog.ShowDialog(this);
             if (show.HasValue && show.Value)
             {
                 var path = dialog.InitialDirectory + dialog.FileName;
-                var storage = new Storage
-                {
-                    Data = mainGrid.ItemsSource.OfType<Identity>(),
-                    Password = enteredPassword,
-                    PathToArchive = path
-                };
-                await storage.Save();
+                await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), path);
                 StatusLabel.Content = "Saved";
             }
         }
 
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void SaveDefaultButton_Click(object sender, RoutedEventArgs e)
         {
-            //var storage = new Storage
-            //{
-            //    Password = "1",
-            //    PathToArchive = @"C:\Users\DevUser\Desktop\qwe.zip"
-            //};
+            await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), UserSettings.pathToArchive);
+            StatusLabel.Content = "Saved";
+        }
 
-            mainGrid.ItemsSource = new List<Identity> { };
-            //StatusLabel.Content = "Loaded";
+        private async void OpenCustomButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (UserSettings.isArchiveExists)
+            {
+                var dialog = new OpenFileDialog();
+                var show = dialog.ShowDialog(this);
+                if (show.HasValue && show.Value)
+                {
+                    var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
+                    if (result.success)
+                    {
+                        mainGrid.ItemsSource = result.identities;
+                        StatusLabel.Content = "Loaded";
+                    }
+                    else
+                    {
+                        StatusLabel.Content = "Corrupted zip or incorrect password";
+                    }
+                }
+            }
+        }
+
+        private async void OpenDefaultButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (UserSettings.isArchiveExists)
+            {
+                var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
+                if (result.success)
+                {
+                    mainGrid.ItemsSource = result.identities;
+                    StatusLabel.Content = "Loaded";
+                }
+                else
+                {
+                    StatusLabel.Content = "Corrupted zip or incorrect password";
+                }
+            }
+            else
+            {
+                StatusLabel.Content = "Archive doesn't exists";
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            mainGrid.ItemsSource = new List<Identity>();
         }
     }
 }
