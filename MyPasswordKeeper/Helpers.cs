@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,24 +16,14 @@ namespace MyPasswordKeeper
 {
     public static class Helpers
     {
-        public static List<Identity> StringToIdentities(string data)
+        private static JsonSerializerOptions options = new JsonSerializerOptions()
         {
-            return data.Split('\n').Select(x =>
-            {
-                var s = x.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                return s.Length != 3 ? null : new Identity()
-                {
-                    ServiceName = s[0],
-                    Username = s[1],
-                    Password = s[2]
-                };
-            }).Where(x => x.IsValid() && x != null).ToList();
-        }
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
 
-        public static string IdentitiesToString(IEnumerable<Identity> data)
-        {
-            return string.Join('\n', data.Select(x => $"{x.ServiceName} {x.Username} {x.Password}"));
-        }
+        public static List<Identity> Deserialize(string data) => JsonSerializer.Deserialize<List<Identity>>(data, options);
+
+        public static string Serialize(IEnumerable<Identity> data) => JsonSerializer.Serialize(data, options);
 
         public static async Task<(List<Identity> identities, bool success)> TryLoadArchive(string path, string pass)
         {
@@ -52,7 +45,7 @@ namespace MyPasswordKeeper
                 using var sr = new StreamReader(s);
                 var data = await sr.ReadToEndAsync();
 
-                return (StringToIdentities(data), true);
+                return (Deserialize(data), true);
             }
             catch (ZipException)
             {
@@ -68,7 +61,7 @@ namespace MyPasswordKeeper
             if (!UserSettings.isArchiveExists)
                 Directory.CreateDirectory(UserSettings.pathToArchiveFolder);
 
-            var data = IdentitiesToString(identities);
+            var data = Serialize(identities);
             using (var output = new MemoryStream())
             {
                 using (var zipStream = new ZipOutputStream(output))
@@ -80,7 +73,7 @@ namespace MyPasswordKeeper
                         zipStream.Password = password;
                     }
 
-                    var newEntry = new ZipEntry(Storage.fileNameInArchive) { DateTime = DateTime.Now };
+                    var newEntry = new ZipEntry(Storage.fileNameInArchive) { DateTime = DateTime.Now, IsUnicodeText = true };
                     zipStream.PutNextEntry(newEntry);
 
                     StreamUtils.Copy(new MemoryStream(Encoding.UTF8.GetBytes(data)), zipStream, new byte[4096]);
