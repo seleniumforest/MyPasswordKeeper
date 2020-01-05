@@ -15,6 +15,6 @@ namespace MyPasswordKeeper.Models
         public string PathToArchive { get; set; }
         public string Password { get; set; }
         public IEnumerable<Identity> Data { get; set; }
-        public static string fileNameInArchive => "userdata";
+        public static string fileNameInArchive => "userdata.json";
     }
 }

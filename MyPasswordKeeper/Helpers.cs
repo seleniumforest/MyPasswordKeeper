@@ -38,7 +38,7 @@ namespace MyPasswordKeeper
                 var ze = zf.GetEntry(Storage.fileNameInArchive);
                 if (ze == null)
                 {
-                    throw new ArgumentException($"{Storage.fileNameInArchive} not found");
+                    throw new ArgumentException($"{Storage.fileNameInArchive} not found in archive");
                 }
 
                 using var s = zf.GetInputStream(ze);

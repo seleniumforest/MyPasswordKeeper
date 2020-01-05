@@ -32,48 +32,14 @@ namespace MyPasswordKeeper
             InitializeComponent();
         }
 
-        private async void SaveCustomButton_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new SaveFileDialog();
-            var show = dialog.ShowDialog(this);
-            if (show.HasValue && show.Value)
-            {
-                var path = dialog.InitialDirectory + dialog.FileName;
-                await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), path);
-                StatusLabel.Content = "Saved";
-            }
-        }
-
-        private async void SaveDefaultButton_Click(object sender, RoutedEventArgs e)
-        {
-            await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), UserSettings.pathToArchive);
-            StatusLabel.Content = "Saved";
-        }
-
-        private async void OpenCustomButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (UserSettings.isArchiveExists)
-            {
-                var dialog = new OpenFileDialog();
-                var show = dialog.ShowDialog(this);
-                if (show.HasValue && show.Value)
-                {
-                    var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
-                    if (result.success)
-                    {
-                        mainGrid.ItemsSource = result.identities;
-                        StatusLabel.Content = "Loaded";
-                    }
-                    else
-                    {
-                        StatusLabel.Content = "Corrupted zip or incorrect password";
-                    }
-                }
-            }
-        }
-
         private async void OpenDefaultButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(enteredPassword))
+            {
+                StatusLabel.Content = "No password provided";
+                return;
+            }
+
             if (UserSettings.isArchiveExists)
             {
                 var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
@@ -92,6 +58,52 @@ namespace MyPasswordKeeper
                 StatusLabel.Content = "Archive doesn't exists";
             }
         }
+
+        private async void SaveDefaultButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(enteredPassword))
+            {
+                StatusLabel.Content = "No password provided";
+                return;
+            }
+
+            await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), UserSettings.pathToArchive);
+            StatusLabel.Content = "Saved";
+        }
+
+        //private async void SaveCustomButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var dialog = new SaveFileDialog();
+        //    var show = dialog.ShowDialog(this);
+        //    if (show.HasValue && show.Value)
+        //    {
+        //        var path = dialog.InitialDirectory + dialog.FileName;
+        //        await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), path);
+        //        StatusLabel.Content = "Saved";
+        //    }
+        //}
+
+        //private async void OpenCustomButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (UserSettings.isArchiveExists)
+        //    {
+        //        var dialog = new OpenFileDialog();
+        //        var show = dialog.ShowDialog(this);
+        //        if (show.HasValue && show.Value)
+        //        {
+        //            var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
+        //            if (result.success)
+        //            {
+        //                mainGrid.ItemsSource = result.identities;
+        //                StatusLabel.Content = "Loaded";
+        //            }
+        //            else
+        //            {
+        //                StatusLabel.Content = "Corrupted zip or incorrect password";
+        //            }
+        //        }
+        //    }
+        //}    
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {

@@ -9,12 +9,12 @@
     <Grid>
         <StackPanel Orientation="Vertical" Margin="10">
             <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
-                <Button Content="Load " Click="OpenDefaultButton_Click" Margin="0 0 10 0" Padding="10" />
                 <Label Content="Password" VerticalAlignment="Center" />
-                <TextBox MinWidth="250" x:Name="PasswordTextBox" Margin="0 0 10 0" />
+                <TextBox MinWidth="250" x:Name="PasswordTextBox" Margin="0 0 10 0" FontSize="20" />
+                <Button Content="Load " Click="OpenDefaultButton_Click" Margin="0 0 10 0" Padding="10" />
                 <Button Content="Save" Click="SaveDefaultButton_Click" Margin="0 0 10 0" Padding="10" />
-                <Button Content="Load custom archive" Click="OpenCustomButton_Click" Margin="50 0 10 0" Padding="10" />
-                <Button Content="Save custom archive" Click="SaveCustomButton_Click" Margin="0 0 10 0" Padding="10" />
+                <!--<Button Content="Load custom archive" Click="OpenCustomButton_Click" Margin="50 0 10 0" Padding="10" />
+                <Button Content="Save custom archive" Click="SaveCustomButton_Click" Margin="0 0 10 0" Padding="10" />-->
             </StackPanel>
             <DataGrid x:Name="mainGrid" MinColumnWidth="250"/>
             <Label x:Name="StatusLabel" />
