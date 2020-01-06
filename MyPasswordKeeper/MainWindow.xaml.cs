@@ -1,5 +1,6 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Win32;
+using MyPasswordKeeper.DataStorage;
 using MyPasswordKeeper.Models;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,9 @@ namespace MyPasswordKeeper
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string enteredPassword => this.PasswordTextBox.Text;
+        private string enteredPassword => this.PasswordTextBox.Password;
+
+        private IDataStorage dataStorage = new LocalStorage();
 
         public MainWindow()
         {
@@ -36,26 +39,20 @@ namespace MyPasswordKeeper
         {
             if (string.IsNullOrEmpty(enteredPassword))
             {
-                StatusLabel.Content = "No password provided";
+                StatusLabel.Content = Labels.NoPasswordProvided;
                 return;
             }
 
-            if (UserSettings.isArchiveExists)
+
+            var result = await dataStorage.Load(enteredPassword);
+            if (result.success)
             {
-                var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
-                if (result.success)
-                {
-                    mainGrid.ItemsSource = result.identities;
-                    StatusLabel.Content = "Loaded";
-                }
-                else
-                {
-                    StatusLabel.Content = "Corrupted zip or incorrect password";
-                }
+                mainGrid.ItemsSource = result.identities;
+                StatusLabel.Content = Labels.Successfully_loaded;
             }
             else
             {
-                StatusLabel.Content = "Archive doesn't exists";
+                StatusLabel.Content = result.message;
             }
         }
 
@@ -63,51 +60,21 @@ namespace MyPasswordKeeper
         {
             if (string.IsNullOrEmpty(enteredPassword))
             {
-                StatusLabel.Content = "No password provided";
+                StatusLabel.Content = Labels.NoPasswordProvided;
                 return;
             }
 
-            await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), UserSettings.pathToArchive);
-            StatusLabel.Content = "Saved";
+            var archive = Helpers.CreateArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>());
+            var result = await dataStorage.Upload(archive);
+            if (result.success)
+                StatusLabel.Content = Labels.Saved;
+            else
+                StatusLabel.Content = result.message;
         }
-
-        //private async void SaveCustomButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var dialog = new SaveFileDialog();
-        //    var show = dialog.ShowDialog(this);
-        //    if (show.HasValue && show.Value)
-        //    {
-        //        var path = dialog.InitialDirectory + dialog.FileName;
-        //        await Helpers.TrySaveArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>(), path);
-        //        StatusLabel.Content = "Saved";
-        //    }
-        //}
-
-        //private async void OpenCustomButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (UserSettings.isArchiveExists)
-        //    {
-        //        var dialog = new OpenFileDialog();
-        //        var show = dialog.ShowDialog(this);
-        //        if (show.HasValue && show.Value)
-        //        {
-        //            var result = await Helpers.TryLoadArchive(UserSettings.pathToArchive, enteredPassword);
-        //            if (result.success)
-        //            {
-        //                mainGrid.ItemsSource = result.identities;
-        //                StatusLabel.Content = "Loaded";
-        //            }
-        //            else
-        //            {
-        //                StatusLabel.Content = "Corrupted zip or incorrect password";
-        //            }
-        //        }
-        //    }
-        //}    
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            mainGrid.ItemsSource = new List<Identity>();
+            mainGrid.ItemsSource = default(List<Identity>);
         }
     }
 }
