@@ -120,6 +120,9 @@
   <data name="CantOpenArchive" xml:space="preserve">
     <value>Corrupted zip or incorrect password</value>
   </data>
+  <data name="CantSaveArchive" xml:space="preserve">
+    <value>Cannot Save Archive</value>
+  </data>
   <data name="No Archive" xml:space="preserve">
     <value>Archive doesn't exists</value>
   </data>

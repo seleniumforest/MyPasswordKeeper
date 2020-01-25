@@ -1,5 +1,6 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Win32;
+using MyPasswordKeeper.ArchiveWorker;
 using MyPasswordKeeper.DataStorage;
 using MyPasswordKeeper.Models;
 using System;
@@ -27,8 +28,10 @@ namespace MyPasswordKeeper
     public partial class MainWindow : Window
     {
         private string enteredPassword => this.PasswordTextBox.Password;
+        private IEnumerable<Identity> enteredEntities => mainGrid.ItemsSource.OfType<Identity>();
 
-        private IDataStorage dataStorage = new LocalStorage();
+        private IDataStorage dataStorage = new GoogleDriveStorage();
+        private IArchiveWorker archiveWorker = new ZipArchiveWorker();
 
         public MainWindow()
         {
@@ -43,16 +46,15 @@ namespace MyPasswordKeeper
                 return;
             }
 
-
-            var result = await dataStorage.Load(enteredPassword);
-            if (result.success)
+            try
             {
-                mainGrid.ItemsSource = result.identities;
+                var result = await dataStorage.Load(enteredPassword);
+                mainGrid.ItemsSource = result;
                 StatusLabel.Content = Labels.Successfully_loaded;
             }
-            else
+            catch (Exception)
             {
-                StatusLabel.Content = result.message;
+                StatusLabel.Content = Labels.CantOpenArchive;
             }
         }
 
@@ -64,17 +66,24 @@ namespace MyPasswordKeeper
                 return;
             }
 
-            var archive = Helpers.CreateArchive(enteredPassword, mainGrid.ItemsSource.OfType<Identity>());
-            var result = await dataStorage.Upload(archive);
-            if (result.success)
-                StatusLabel.Content = Labels.Saved;
-            else
-                StatusLabel.Content = result.message;
+            try
+            {
+                var archive = await archiveWorker.CreateArchive(enteredPassword, enteredEntities);
+                var success = await dataStorage.Upload(archive);
+                if (success) 
+                    StatusLabel.Content = Labels.Saved;
+                else
+                    StatusLabel.Content = Labels.CantSaveArchive;
+            }
+            catch (Exception ex)
+            {
+                StatusLabel.Content = Labels.CantSaveArchive;
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            mainGrid.ItemsSource = default(List<Identity>);
+            mainGrid.ItemsSource = new List<Identity>();
         }
     }
 }

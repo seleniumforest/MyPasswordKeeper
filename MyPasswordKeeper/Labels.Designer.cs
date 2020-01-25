@@ -70,6 +70,15 @@ namespace MyPasswordKeeper {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot Save Archive.
+        /// </summary>
+        internal static string CantSaveArchive {
+            get {
+                return ResourceManager.GetString("CantSaveArchive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Archive doesn&apos;t exists.
         /// </summary>
         internal static string No_Archive {
