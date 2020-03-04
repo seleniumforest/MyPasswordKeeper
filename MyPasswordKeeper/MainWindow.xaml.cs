@@ -30,7 +30,7 @@ namespace MyPasswordKeeper
         private string enteredPassword => this.PasswordTextBox.Password;
         private IEnumerable<Identity> enteredEntities => mainGrid.ItemsSource.OfType<Identity>();
 
-        private IDataStorage dataStorage = new GoogleDriveStorage();
+        private IDataStorage dataStorage = new LocalStorage();
         private IArchiveWorker archiveWorker = new ZipArchiveWorker();
 
         public MainWindow()
@@ -66,18 +66,23 @@ namespace MyPasswordKeeper
                 return;
             }
 
-            try
+            MessageBoxResult messageBoxResult = MessageBox.Show("Are you sure?", "Overwrite Confirmation", MessageBoxButton.YesNo);
+            if (messageBoxResult == MessageBoxResult.Yes)
             {
-                var archive = await archiveWorker.CreateArchive(enteredPassword, enteredEntities);
-                var success = await dataStorage.Upload(archive);
-                if (success) 
-                    StatusLabel.Content = Labels.Saved;
-                else
+
+                try
+                {
+                    var archive = await archiveWorker.CreateArchive(enteredPassword, enteredEntities);
+                    var success = await dataStorage.Upload(archive);
+                    if (success)
+                        StatusLabel.Content = Labels.Saved;
+                    else
+                        StatusLabel.Content = Labels.CantSaveArchive;
+                }
+                catch (Exception ex)
+                {
                     StatusLabel.Content = Labels.CantSaveArchive;
-            }
-            catch (Exception ex)
-            {
-                StatusLabel.Content = Labels.CantSaveArchive;
+                }
             }
         }
 

@@ -53,6 +53,9 @@ namespace MyPasswordKeeper.DataStorage
 
         public async Task<bool> Upload(MemoryStream data)
         {
+            if (!Directory.Exists(pathToArchiveFolder))
+                Directory.CreateDirectory(pathToArchiveFolder);
+
             await File.WriteAllBytesAsync(_path, data.ToArray());
             return true;
         }
